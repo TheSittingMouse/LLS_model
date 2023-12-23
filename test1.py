@@ -1,3 +1,5 @@
+# Author: Ozan Cem Baş
+
 import LLS
 from scipy.stats import norm
 import matplotlib.pyplot as plt
