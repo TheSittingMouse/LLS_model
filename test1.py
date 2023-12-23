@@ -1,4 +1,4 @@
-import LSM
+import LLS
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 import scipy.fft as fft
