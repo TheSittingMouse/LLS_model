@@ -24,11 +24,11 @@ class Market:
         print("\t Agents:", [i.name for i in self.AgentsList])
         return ""
     
-    def set_dividend_increment(self, increment):
+    def setDividendIncrement(self, increment):
         self.dividend_increment = increment
         return 0
 
-    def add_agent(self, number, wealth, memory, agent_std=0.01, name="Undefined"):
+    def addAgent(self, number, wealth, memory, agent_std=0.01, name="Undefined"):
         if number == -1:
             agent = Agent(wealth, memory, name)
             agent.agent_std = agent_std
@@ -55,15 +55,15 @@ class Market:
             self.agent_number += 1
         return 0
 
-    def get_collective_demand(self, Ph, Pt, hist, time):
+    def getCollectiveDemand(self, Ph, Pt, hist, time):
         N = 0
         for agent in self.AgentsList:
-            N += agent.get_demand(Ph, Pt, self.daily_divident, self.daily_interest, hist, time)
+            N += agent.getDemand(Ph, Pt, self.daily_divident, self.daily_interest, hist, time)
         return N
     
-    def get_eq_price(self, Pt, hist, time, lower_lim=1e-5,  upper_lim=1000):
+    def getEqulibriumPrice(self, Pt, hist, time, lower_lim=1e-5,  upper_lim=1000):
         def f(x):
-            return (self.get_collective_demand(x, Pt, hist, time) - self.num_stocks)
+            return (self.getCollectiveDemand(x, Pt, hist, time) - self.num_stocks)
         
         a = lower_lim
         b = Pt + upper_lim
@@ -76,17 +76,17 @@ class Market:
                 a = b
                 b += 1000
 
-        demand = self.get_collective_demand(Ph, Pt, hist, time)
+        demand = self.getCollectiveDemand(Ph, Pt, hist, time)
         return [Ph, demand]        
     
-    def update_collective_wealth(self):
+    def updateCollectiveWealth(self):
         for key in self.wealth_dist:
             self.wealth_dist[key].append(0)
         for agent in self.AgentsList:
             self.wealth_dist[agent.memory][-1] += agent.wealth
         return 0
     
-    def get_frac_wealth(self):
+    def getFracionalWealth(self):
         total_wealth = 0
         frac_list = {}
         for key in self.wealth_dist:
@@ -117,7 +117,7 @@ class Market:
         # simulating for all time values
         for t in range((len_hist-1),(time+len_hist-2)):
             # get the new price of the asset at time t+1
-            price_demand = self.get_eq_price(price[t], hist, t)
+            price_demand = self.getEqulibriumPrice(price[t], hist, t)
 
             demand = price_demand[1]
             price[t+1] = price_demand[0]
@@ -126,14 +126,14 @@ class Market:
             # update the assets of the investers
             tot_wealth = 0
             for agent in self.AgentsList:
-                agent.demand = agent.get_demand(price[t+1], price[t], self.daily_divident, self.daily_interest, hist, t)
+                agent.demand = agent.getDemand(price[t+1], price[t], self.daily_divident, self.daily_interest, hist, t)
                 volume[t+1] += np.abs(agent.stocks-agent.demand)
                 agent.wealth += (agent.stocks*self.daily_divident)+((agent.wealth-agent.stocks*price[t])*self.daily_interest) + agent.stocks*(price[t+1]-price[t])
                 agent.stocks = agent.demand
                 tot_wealth += agent.wealth
-                agent.get_new_random()
+                agent.getNewRandom()
             
-            self.update_collective_wealth()
+            self.updateCollectiveWealth()
 
             if inc_div:
                 self.daily_divident += self.dividend_increment
@@ -143,7 +143,7 @@ class Market:
 
         return [time_array,price,volume,hist]
     
-    def save_results(self, result, name):
+    def saveResults(self, result, name):
         import pandas as pd
         import os
 
@@ -164,14 +164,14 @@ class Market:
                 folder_name = str(name + str(n))
                 n += 1
         
-        agent_lib = self.get_frac_wealth()
+        agent_lib = self.getFracionalWealth()
         for key in agent_lib:
             agent_lib[key] = []
         for agent in self.AgentsList:
             mem = agent.memory
             agent_lib[mem].append(agent)
 
-        wealth_lib = self.get_frac_wealth()
+        wealth_lib = self.getFracionalWealth()
         result_lib = {}
         info_lib = {"Name":[self.name], "Interest":[self.daily_interest], "Dividend":[self.daily_divident], "StocksOS":[self.num_stocks]}
         result_lib["Time"] = result[0]
@@ -214,10 +214,10 @@ class Agent:
         print("\t Demand:", self.demand)
         return ""
     
-    def get_new_random(self):
+    def getNewRandom(self):
         self.agent_param = random.gauss(self.agent_mean, self.agent_std)
 
-    def get_util(self, Xi, Ph, Pt, D, r, hist, time):
+    def getUtil(self, Xi, Ph, Pt, D, r, hist, time):
         """
         Returns the 
         """
@@ -233,7 +233,7 @@ class Agent:
 
         return [util, Wh]
 
-    def get_demand(self, Ph, Pt, D, r, hist, time):
+    def getDemand(self, Ph, Pt, D, r, hist, time):
         """
         Gets and updates the demand of the agent for the specified parameters at a time t
 
@@ -256,25 +256,25 @@ class Agent:
         arg_Xi = 0
 
         while n<n_max:
-            util_Wh0 = self.get_util(Xi_list[0], Ph, Pt, D, r, hist, time)
-            util_Wh1 = self.get_util(Xi_list[1], Ph, Pt, D, r, hist, time)
-            util_Wh2 = self.get_util(Xi_list[2], Ph, Pt, D, r, hist, time)
+            util_Wh0 = self.getUtil(Xi_list[0], Ph, Pt, D, r, hist, time)
+            util_Wh1 = self.getUtil(Xi_list[1], Ph, Pt, D, r, hist, time)
+            util_Wh2 = self.getUtil(Xi_list[2], Ph, Pt, D, r, hist, time)
             util_list = [util_Wh0[0], util_Wh1[0], util_Wh2[0]]
             arg_util_min = np.argmin(util_list)
             arg_Xi = np.argmax(util_list)
             Xi_list[arg_util_min] = (np.sum(Xi_list)-Xi_list[arg_util_min])/2
             n += 1
         Xh = Xi_list[arg_Xi]
-        Wh = self.get_util(Xh, Ph, Pt, D, r, hist, time)[1]
+        Wh = self.getUtil(Xh, Ph, Pt, D, r, hist, time)[1]
 
         # adding randomness to accont for various interactions
         Xh = Xh + self.agent_param
         if Xh>0.99:
             Xh = 0.99
-            Wh = self.get_util(Xh, Ph, Pt, D, r, hist, time)[1]
+            Wh = self.getUtil(Xh, Ph, Pt, D, r, hist, time)[1]
         elif Xh<0.01:
             Xh = 0.01
-            Wh = self.get_util(Xh, Ph, Pt, D, r, hist, time)[1]
+            Wh = self.getUtil(Xh, Ph, Pt, D, r, hist, time)[1]
 
         demand = Xh*Wh/Ph
         # if demand*Ph > self.wealth:

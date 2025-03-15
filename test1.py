@@ -11,14 +11,14 @@ import numpy as np
 stocks_outstanding = 10000
 daily_int = 0.0001
 daily_div = 0.00015
-market = LSM.Market(daily_int, daily_div, stocks_outstanding, "BIST")
-market.set_dividend_increment(0.00015)
+market = LLS.Market(daily_int, daily_div, stocks_outstanding, "BIST")
+market.setDividendIncrement(0.00015)
 
 # Adding the desired amount of agent to the market
-market.add_agent(25, 1000, 10, agent_std=0.03)
-market.add_agent(25, 1000, 26, agent_std=0.03)
-market.add_agent(25, 1000, 55, agent_std=0.03)
-market.add_agent(25, 1000, 120, agent_std=0.03)
+market.addAgent(25, 1000, 10, agent_std=0.03)
+market.addAgent(25, 1000, 26, agent_std=0.03)
+market.addAgent(25, 1000, 55, agent_std=0.03)
+market.addAgent(25, 1000, 120, agent_std=0.03)
 
 # Setting the initial price and the initial history of the market
 init_hist = norm.rvs(loc=0.0001, scale=0.000125, size=400)
@@ -28,7 +28,7 @@ init_price = 4
 results = market.simulate(0.3, init_hist, init_price, 5000, callback=True, inc_div=True)
 
 # Results can be saved if desired
-market.save_results(results, "four_agent_std_0_03_5000_")
+market.saveResults(results, "four_agent_std_0_03_5000_")
 
 # Processing the results to show only the forward time values
 zero_index = int(np.where(results[0] == 0)[0])-1
